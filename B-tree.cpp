@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<windows.h>
+#include<stdbool.h>
 
 typedef struct elemento{
 	int num;
@@ -51,6 +52,22 @@ void percorre(El **v, int numaux){
 	}
 }
 
+bool lado(El **v, int numaux){
+	for(;;){
+		if((*v)->ant!=NULL){
+			(*v)=(*v)->ant;
+		}else{
+			if((*v)->num>numaux){
+				return true;
+			}else{
+				return false;
+			}
+		}
+	}
+	
+}
+
+
 void insere(El **v, int numaux){
 	elemento *e;
 	e =((elemento*)malloc(sizeof(elemento)));
@@ -81,6 +98,9 @@ void insere(El **v, int numaux){
 void remover(El **v){ //Falta remover valores a direita da arvore
 	elemento *e;
 	e = *v;
+	bool flag;
+	
+	
 	
 	if((*v)->ant == NULL){ //Raiz
 		if((*v)->eqd == NULL){ //Não Tem Valor à esquerda
@@ -146,43 +166,134 @@ void remover(El **v){ //Falta remover valores a direita da arvore
 			
 		}
 	}else{ //Não é raiz
-		if((*v)->eqd == NULL){
-			if((*v)->drt != NULL){
-				(*v)->drt->ant = (*v)->ant;
-				e = (*v)->drt;
-				(*v)->ant->eqd = e;
-				free(*v);
-				*v = e;
-			}else{
-				(*v)->ant->eqd = NULL;
-				e = (*v)->ant;
-				free(*v);
-				*v = e;
-			}
-		
-		}else{
-			if((*v)->eqd->drt == NULL){
-				(*v)->eqd->ant = (*v)->ant;
-				e = (*v)->eqd;
-				(*v)->ant->eqd = e;
-				free(*v);
-				*v = e;
-			}else{
-				e = (*v)->eqd->drt;
-				for(;;){
-					if (e->drt != NULL){
-						e = e->drt;
+		flag = (&e, e->num);
+		if(flag == true){// Verifica Se esta a Direita ou esquerda -- true = direita / false = esquerda
+			if((*v)->drt == NULL){ // Se o que esta a direita é null
+				if((*v)->eqd != NULL){
+					(*v)->eqd->ant = (*v)->ant;
+					e = (*v)->eqd;
+					
+					if((*v)->ant->num > (*v)->num){ //Para saber se esta a Direita ou a esquerda do anterior
+						(*v)->ant->eqd = e;
 					}else{
-						break;
+						(*v)->ant->drt = e;
 					}
+					
+					free(*v);
+					*v = e;
+				}else{
+					
+					if((*v)->ant->num > (*v)->num){ //Para saber se esta a Direita ou a esquerda do anterior
+						(*v)->ant->eqd = NULL;
+					}else{
+						(*v)->ant->drt = NULL;
+					}
+
+					e = (*v)->ant;
+					free(*v);
+					*v = e;
 				}
-				e->eqd = (*v)->eqd;
-				e->drt = (*v)->drt;
-				e->ant->drt = NULL;
-				e->ant = (*v)->ant;
-				(*v)->ant->eqd = e;
-				free(*v);
-				*v = e;
+			
+			}else{ // Se o que esta a direita não é null
+				if((*v)->drt->eqd == NULL){// Verifica se o proximo a direita possui um a esquerda
+					(*v)->drt->ant = (*v)->ant;
+					e = (*v)->drt;
+					
+					if((*v)->ant->num > (*v)->num){ //Para saber se esta a Direita ou a esquerda do anterior
+						(*v)->ant->eqd = e;
+					}else{
+						(*v)->ant->drt = e;
+					}
+					
+					free(*v);
+					*v = e;
+				}else{ // Se tem um a esquerda
+					e = (*v)->drt->eqd;
+					for(;;){
+						if (e->eqd != NULL){
+							e = e->eqd;
+						}else{
+							break;
+						}
+					}
+					e->eqd = (*v)->eqd;
+					e->drt = (*v)->drt;
+					e->ant->eqd = NULL;
+					e->ant = (*v)->ant;
+					
+					if((*v)->ant->num > (*v)->num){ //Para saber se esta a Direita ou a esquerda do anterior
+						(*v)->ant->eqd = e;
+					}else{
+						(*v)->ant->drt = e;
+					}
+					
+					if((*v)->eqd != NULL){ // Se tem um filho a esquerda do que vai ser retirado
+						(*v)->eqd->ant = e;
+					}
+					
+					(*v)->drt->ant = e;
+					
+					free(*v);
+					*v = e;
+				}
+			}
+		}else{ // A esquerda Da raiz
+			if((*v)->eqd == NULL){
+				if((*v)->drt != NULL){
+					(*v)->drt->ant = (*v)->ant;
+					e = (*v)->drt;
+					
+					if((*v)->ant->num > (*v)->num){ //Para saber se esta a Direita ou a esquerda do anterior
+						(*v)->ant->eqd = e;
+					}else{
+						(*v)->ant->drt = e;
+					}
+					
+					
+					free(*v);
+					*v = e;
+				}else{
+					
+					if((*v)->ant->num > (*v)->num){ //Para saber se esta a Direita ou a esquerda do anterior
+						(*v)->ant->eqd = NULL;
+					}else{
+						(*v)->ant->drt = NULL;
+					}
+					
+					e = (*v)->ant;
+					free(*v);
+					*v = e;
+				}
+			
+			}else{
+				if((*v)->eqd->drt == NULL){
+					(*v)->eqd->ant = (*v)->ant;
+					e = (*v)->eqd;
+					(*v)->ant->eqd = e;
+					free(*v);
+					*v = e;
+				}else{
+					e = (*v)->eqd->drt;
+					for(;;){
+						if (e->drt != NULL){
+							e = e->drt;
+						}else{
+							break;
+						}
+					}
+					e->eqd = (*v)->eqd;
+					e->drt = (*v)->drt;
+					e->ant->drt = NULL;
+					e->ant = (*v)->ant;
+					(*v)->ant->eqd = e;
+					
+					if((*v)->drt != NULL){
+						(*v)->drt->ant = e;
+					}
+					(*v)->eqd->ant = e;
+					free(*v);
+					*v = e;
+				}
 			}
 		}
 	}
