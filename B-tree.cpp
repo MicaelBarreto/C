@@ -3,6 +3,11 @@
 #include<windows.h>
 #include<stdbool.h>
 
+int profundidadeMax = 0;
+int somas[999];
+int countS = 0;
+//Arrumar Balanceamento!!!!
+
 typedef struct elemento{
 	int num;
 	struct elemento *ant;
@@ -22,6 +27,7 @@ void insere_primeiro(El **v, int numaux){
 	e->drt = NULL;
 	e->eqd = NULL;
 	*v = e;
+	profundidadeMax = 0;
 }
 
 void volta(El **v){
@@ -35,6 +41,7 @@ void volta(El **v){
 }
 
 void percorre(El **v, int numaux){
+	
 	for(;;){
 		if((*v)->num>numaux){
 			if((*v)->eqd!=NULL){
@@ -51,6 +58,113 @@ void percorre(El **v, int numaux){
 		}
 	}
 }
+
+void profundidade(El **v){
+	int profundidade = 0;
+	for(;;){
+		if ((*v)->ant != NULL){
+			profundidade++;
+			(*v)=(*v)->ant;
+		}else{
+			if(profundidade>profundidadeMax){
+				profundidadeMax = profundidade;
+			}
+			break;
+		}
+	}
+}
+
+balanceamentoEqd(El **v, int soma){
+	elemento *e = *v;
+	if((*v)->ant!=NULL){
+		balanceamentoEqd(&e->ant, soma+1);
+	}else{
+		somas[countS]=soma;
+		countS++;
+	}
+}
+
+balanceamentoDrt(El **v, int soma){
+	elemento *e = *v;
+	
+	if((*v)->ant!=NULL){
+		//printf("\nsoma = %i\n", soma);
+		balanceamentoDrt(&e->ant, soma-1);
+	}else{
+		somas[countS]=soma;
+		countS++;
+	}
+}
+
+int balanceamento(){
+	int i;
+	int j;
+	int menor = 0;
+	int maior = 0;
+	
+	for(i=0;i<countS;i++){
+		for(j=0;j<countS;j++){
+			//printf("somas[%i] = %i \n", i,somas[i]);
+			/*if (somas[j]>somas[i]){
+				maior=somas[i];
+				printf("\nmaior = %i\n", maior);
+			}else{
+				menor=somas[i];
+			}*/
+			
+			if(somas[i]>somas[j] && somas[i]>maior){
+				//printf("\nsoma[i] = %i\n", somas[i]);
+				//printf("\nsoma[j] = %i\n", somas[j]);
+				maior=somas[i];
+				//printf("\nmaior = %i\n", maior);
+				//printf("\nmaior = %i\n", maior);
+			}
+			
+			if (somas[i]<somas[j] && somas[i]<menor){
+				//printf("\nsoma[i] = %i\n", somas[i]);
+				//printf("\nsoma[j] = %i\n", somas[j]);
+				menor=somas[i];
+				//printf("\nmenor = %i\n", menor);
+			}
+		}
+	}
+	//printf("maior = %i \n", maior);
+	//printf("menor = %i \n", menor);
+	//printf("%i ", (maior+menor));
+	return (maior+menor);
+}
+
+void balUltimos (El **v, int raiz){
+	elemento *e = *v;
+	if(*v != NULL){
+		if (((*v)->eqd == NULL) && ((*v)->drt == NULL)){
+			if((*v)->num>raiz){
+				balanceamentoDrt(&e, 0);
+			}else{
+				balanceamentoEqd(&e, 0);
+			}
+		}
+		//printf("\n v->eqd = %i", e->eqd->num);
+		balUltimos(&(*v)->eqd, raiz);
+		//printf("\n v->drt = %i", e->drt->num);
+		balUltimos(&(*v)->drt, raiz);
+	}
+}
+
+void ultimos (El **v){
+	elemento *e;
+	if(*v != NULL){
+		if (((*v)->eqd == NULL) && ((*v)->drt == NULL)){
+			e = *v;
+			profundidade(&e);
+		}
+		ultimos(&(*v)->eqd);
+		ultimos(&(*v)->drt);
+	}
+}
+
+
+
 
 bool lado(El **v, int numaux){
 	for(;;){
@@ -95,7 +209,7 @@ void insere(El **v, int numaux){
 		
 }
 
-void remover(El **v){ //Falta remover valores a direita da arvore
+void remover(El **v){ 
 	elemento *e;
 	e = *v;
 	bool flag;
@@ -301,6 +415,34 @@ void remover(El **v){ //Falta remover valores a direita da arvore
 	
 }
 
+void preOrdem (El **v){
+	if (*v != NULL){
+		printf("%d ", (*v)->num);
+		
+		if((*v)->eqd!=NULL){
+			preOrdem(&(*v)->eqd);
+		}
+		if((*v)->drt!=NULL){
+			preOrdem(&(*v)->drt);
+		}
+	}
+}
+
+void emOrdem (El **v){
+	if(*v != NULL){
+		emOrdem(&(*v)->eqd);
+		printf("%d ", (*v)->num);
+		emOrdem(&(*v)->drt);
+	}
+}
+
+void posOrdem (El **v){
+	if(*v != NULL){
+		posOrdem(&(*v)->eqd);
+		posOrdem(&(*v)->drt);
+		printf("%d ", (*v)->num);
+	}
+}
 
 
 int main(){
@@ -310,6 +452,16 @@ int main(){
 	int op;
 	int tam = 0;
 	inicializa(&n);
+	
+	/*int vetor[12]={5,3,2,4,8,10};
+	insere_primeiro(&n, vetor[0]);
+		for (int j=1;j<12;j++){
+		volta(&n);
+		percorre(&n, vetor[j]);
+		insere(&n, vetor[j]);
+	}
+
+	tam = 12;*/
 	
 	while(1){
 	
@@ -326,8 +478,7 @@ int main(){
 			insere_primeiro(&n, i);
 	
 		}else{
-			
-			printf("Escolha uma opcao\n1-Adicionar Valor\n2-Retirar Valor\n3-Para Cima(^)\n4-Para Direita(>)\n5-Para Esquerda(<)\n6-Sair\n\n\n%d\n\n\n", n->num);
+			printf("Escolha uma opcao\n1-Adicionar Valor\n2-Retirar Valor\n3-Para Cima(^)\n4-Para Direita(>)\n5-Para Esquerda(<)\n6-PreOrdem\n7-EmOrdem\n8-Pos-Ordem\n9-Profundiade Maxima\n10-Balanceamento\n11-Sair\n\n\nValor Atual = %d\n\n", n->num);
 			scanf("%i", &op);
 			fflush(stdin);
 		
@@ -365,6 +516,45 @@ int main(){
 					n = n->eqd;
 				}
 			}else if(op==6){
+				volta(&n);
+				preOrdem(&n);
+				printf("\n");
+				system("pause");
+				system("cls");
+			}else if(op==7){
+				volta(&n);
+				emOrdem(&n);
+				printf("\n");
+				system("pause");
+				system("cls");
+			}else if(op==8){
+				volta(&n);
+				posOrdem(&n);
+				printf("\n");
+				system("pause");
+				system("cls");	
+			}else if(op==9){
+				volta(&n);
+				ultimos(&n);
+				printf("Profundidade Maxima = %d", profundidadeMax);
+				printf("\n");
+				system("pause");
+				system("cls");
+			}else if(op==10){
+				volta(&n);
+				balUltimos(&n, n->num);
+				int soma = balanceamento();
+				if(soma>1){
+					printf("A Arvore esta desbalanceada %d nivel(is) para a esquerda", soma-1);
+				}else if(soma<(-1)){
+					printf("A Arvore esta desbalanceada %d nivel(is) para a direita", soma+1);
+				}else{
+					printf("A Arvore esta balanceada");
+				}
+				printf("\n");
+				system("pause");
+				system("cls");
+			}else if(op==10){
 				break;	
 			}else{
 				
